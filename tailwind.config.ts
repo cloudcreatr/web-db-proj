@@ -6,16 +6,16 @@ export default {
   theme: {
   	extend: {
   		fontFamily: {
-				sans: [
-			  "Inter",
-			  "ui-sans-serif",
-			  "system-ui",
-			  "sans-serif",
-			  "Apple Color Emoji",
-			  "Segoe UI Emoji",
-			  "Segoe UI Symbol",
-			  "Noto Color Emoji",
-			]
+			  sans: [
+				"Inter",
+				"ui-sans-serif",
+				"system-ui",
+				"sans-serif",
+				"Apple Color Emoji",
+				"Segoe UI Emoji",
+				"Segoe UI Symbol",
+				"Noto Color Emoji",
+			  ]
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -25,5 +25,5 @@ export default {
   		colors: {}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+	plugins: [require("tailwindcss-animate"), require('tailwind-scrollbar')],
 } satisfies Config;

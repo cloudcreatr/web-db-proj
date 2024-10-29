@@ -13,9 +13,18 @@ export const loader = () => {
       display_override: ["window-controls-overlay"],
       icons: [
         {
-          src: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
+          src: "/img.png",
+          sizes: "768x684",
+          type: "image/png"
+        },{
+          src: "/img.png",
           sizes: "192x192",
-          type: "image/svg+xml"
+          type: "image/png"
+        },
+        {
+          src: "/img.png",
+          sizes: "512x512",
+          type: "image/png"
         }
       ]
     } as WebAppManifest,

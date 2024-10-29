@@ -2,7 +2,7 @@ import { vitePlugin as remix } from "@remix-run/dev";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { remixPWA } from '@remix-pwa/dev'
-import {nodePolyfills} from 'vite-plugin-node-polyfills';
+
 declare module "@remix-run/node" {
   interface Future {
     v3_singleFetch: true;
@@ -22,11 +22,21 @@ export default defineConfig({
     }),
     remixPWA(),
     tsconfigPaths(),
-    nodePolyfills({
-      // Whether to polyfill `node:` protocol imports.
-      protocolImports: true,
-    }),
+    
   ],
+  optimizeDeps: {
+    exclude: ['drizzle-orm']
+  },
+  build: {
+    commonjsOptions: {
+      exclude: ['drizzle-orm']
+    }
+  },
+  resolve: {
+    alias: {
+      'node:events': 'events'
+    }
+  }
 });
 declare module "@remix-run/server-runtime" {
   // or cloudflare, deno, etc.

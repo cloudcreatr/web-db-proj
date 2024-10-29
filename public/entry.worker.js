@@ -4717,15 +4717,97 @@ class EnhancedCache {
     await s.done;
   }
 }
+class PushManager {
+  constructor(options = {}) {
+    __publicField(this, "_handlePushEvent");
+    __publicField(this, "_handleNotificationClick");
+    __publicField(this, "_handleNotificationClose");
+    __publicField(this, "_handleNotificationError");
+    this._handlePushEvent = options.handlePushEvent || this.handlePushEvent;
+    this._handleNotificationClick = options.handleNotificationClick || this.handleNotificationClick;
+    this._handleNotificationClose = options.handleNotificationClose || this.handleNotificationClose;
+    this._handleNotificationError = options.handleNotificationError || this.handleNotificationError;
+    this.registerListeners();
+  }
+  registerListeners() {
+    self.addEventListener("push", this._handlePushEvent.bind(this));
+    self.addEventListener("notificationclick", this._handleNotificationClick.bind(this));
+    self.addEventListener("notificationclose", this._handleNotificationClose.bind(this));
+    self.addEventListener("notificationerror", this._handleNotificationError.bind(this));
+  }
+  async isClientFocused() {
+    const clientList = await self.clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    });
+    return clientList.some((client) => client.focused);
+  }
+  async postMessageToClient(message, all = true) {
+    const clientList = await self.clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    });
+    if (all) {
+      clientList.forEach((client) => client.postMessage(message));
+    } else {
+      if (clientList.length > 0) {
+        const client = clientList[0];
+        client.postMessage(message);
+      }
+    }
+  }
+  handlePushEvent(event) {
+    const func = async () => {
+      let data2;
+      if (!event.data)
+        return self.registration.showNotification("No data");
+      try {
+        data2 = event.data.json();
+      } catch (e) {
+        data2 = event.data.text();
+      }
+      if (typeof data2 === "string") {
+        return self.registration.showNotification(data2);
+      }
+      const { title, ...rest } = data2;
+      return self.registration.showNotification(title, {
+        ...rest
+      });
+    };
+    event.waitUntil(func());
+  }
+  handleNotificationClick(event) {
+    event.notification.close();
+    const func = async () => {
+      const clientList = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true
+      });
+      if (clientList.length > 0) {
+        const client = clientList[0];
+        client.focus();
+      } else {
+        self.clients.openWindow("/");
+      }
+    };
+    event.waitUntil(func());
+  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+  handleNotificationClose(_event) {
+  }
+  handleNotificationError(event) {
+    console.error("Notification error:", event);
+  }
+}
 const version = "v1";
 const ASSET_CACHE_NAME = `asset-cache`;
-const assetCache = new EnhancedCache(ASSET_CACHE_NAME, {
+new EnhancedCache(ASSET_CACHE_NAME, {
   version,
   strategy: "CacheFirst",
   strategyOptions: {
     maxAgeSeconds: 60 * 60 * 24 * 90,
     // 90 days
-    maxEntries: 100
+    maxEntries: 2e4
   }
 });
 self.addEventListener("install", (event) => {
@@ -4741,15 +4823,84 @@ self.addEventListener("activate", (event) => {
 });
 const defaultFetchHandler = async ({ context }) => {
   const request = context.event.request;
-  const url = new URL(request.url);
-  if (self.__workerManifest.assets.includes(url.pathname)) {
-    return assetCache.handleRequest(request);
-  }
   return fetch(request);
 };
+const pushManager = new PushManager({
+  handlePushEvent: async (event) => {
+    var _a;
+    const msg = (_a = event.data) == null ? void 0 : _a.json();
+    console.log("push event", msg);
+    await self.registration.showNotification(msg.title, {
+      body: msg.options[0].body
+    });
+  },
+  handleNotificationClick: (event) => {
+  },
+  handleNotificationClose: (event) => {
+  },
+  handleNotificationError: (event) => {
+  }
+});
 const entryWorker = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  defaultFetchHandler
+  defaultFetchHandler,
+  pushManager
+}, Symbol.toStringTag, { value: "Module" }));
+var __getOwnPropNames$c = Object.getOwnPropertyNames;
+var __commonJS$c = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames$c(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var require_worker_runtime$c = __commonJS$c({
+  "@remix-pwa/worker-runtime"(exports, module) {
+    module.exports = {};
+  }
+});
+var worker_runtime_default$c = require_worker_runtime$c();
+const route0 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: worker_runtime_default$c
+}, Symbol.toStringTag, { value: "Module" }));
+var __getOwnPropNames$b = Object.getOwnPropertyNames;
+var __commonJS$b = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames$b(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var require_worker_runtime$b = __commonJS$b({
+  "@remix-pwa/worker-runtime"(exports, module) {
+    module.exports = {};
+  }
+});
+var worker_runtime_default$b = require_worker_runtime$b();
+const route1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: worker_runtime_default$b
+}, Symbol.toStringTag, { value: "Module" }));
+var __getOwnPropNames$a = Object.getOwnPropertyNames;
+var __commonJS$a = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames$a(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var require_worker_runtime$a = __commonJS$a({
+  "@remix-pwa/worker-runtime"(exports, module) {
+    module.exports = {};
+  }
+});
+var worker_runtime_default$a = require_worker_runtime$a();
+const route2 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: worker_runtime_default$a
+}, Symbol.toStringTag, { value: "Module" }));
+var __getOwnPropNames$9 = Object.getOwnPropertyNames;
+var __commonJS$9 = (cb, mod) => function __require() {
+  return mod || (0, cb[__getOwnPropNames$9(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var require_worker_runtime$9 = __commonJS$9({
+  "@remix-pwa/worker-runtime"(exports, module) {
+    module.exports = {};
+  }
+});
+var worker_runtime_default$9 = require_worker_runtime$9();
+const route3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: worker_runtime_default$9
 }, Symbol.toStringTag, { value: "Module" }));
 var __getOwnPropNames$8 = Object.getOwnPropertyNames;
 var __commonJS$8 = (cb, mod) => function __require() {
@@ -4761,7 +4912,7 @@ var require_worker_runtime$8 = __commonJS$8({
   }
 });
 var worker_runtime_default$8 = require_worker_runtime$8();
-const route0 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route4 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default$8
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4775,7 +4926,7 @@ var require_worker_runtime$7 = __commonJS$7({
   }
 });
 var worker_runtime_default$7 = require_worker_runtime$7();
-const route1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route5 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default$7
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4789,7 +4940,7 @@ var require_worker_runtime$6 = __commonJS$6({
   }
 });
 var worker_runtime_default$6 = require_worker_runtime$6();
-const route2 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route6 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default$6
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4803,7 +4954,7 @@ var require_worker_runtime$5 = __commonJS$5({
   }
 });
 var worker_runtime_default$5 = require_worker_runtime$5();
-const route3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route7 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default$5
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4817,7 +4968,7 @@ var require_worker_runtime$4 = __commonJS$4({
   }
 });
 var worker_runtime_default$4 = require_worker_runtime$4();
-const route4 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route8 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default$4
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4831,7 +4982,7 @@ var require_worker_runtime$3 = __commonJS$3({
   }
 });
 var worker_runtime_default$3 = require_worker_runtime$3();
-const route5 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route9 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default$3
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4845,7 +4996,7 @@ var require_worker_runtime$2 = __commonJS$2({
   }
 });
 var worker_runtime_default$2 = require_worker_runtime$2();
-const route6 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route10 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default$2
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4859,7 +5010,7 @@ var require_worker_runtime$1 = __commonJS$1({
   }
 });
 var worker_runtime_default$1 = require_worker_runtime$1();
-const route7 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route11 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default$1
 }, Symbol.toStringTag, { value: "Module" }));
@@ -4873,13 +5024,14 @@ var require_worker_runtime = __commonJS({
   }
 });
 var worker_runtime_default = require_worker_runtime();
-const route8 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route12 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: worker_runtime_default
 }, Symbol.toStringTag, { value: "Module" }));
 const assets = [
   "/entry.worker.js",
   "/favicon.ico",
+  "/img.png",
   "/logo-dark.png",
   "/logo-light.png"
 ];
@@ -4896,6 +5048,30 @@ const routes = {
     hasWorkerAction: false,
     module: route0
   },
+  "routes/manifest[.webmanifest]": {
+    id: "routes/manifest[.webmanifest]",
+    parentId: "root",
+    path: "manifest.webmanifest",
+    index: void 0,
+    caseSensitive: void 0,
+    hasLoader: true,
+    hasAction: false,
+    hasWorkerLoader: false,
+    hasWorkerAction: false,
+    module: route1
+  },
+  "routes/notification": {
+    id: "routes/notification",
+    parentId: "root",
+    path: "notification",
+    index: void 0,
+    caseSensitive: void 0,
+    hasLoader: false,
+    hasAction: true,
+    hasWorkerLoader: false,
+    hasWorkerAction: false,
+    module: route2
+  },
   "routes/connection": {
     id: "routes/connection",
     parentId: "root",
@@ -4906,7 +5082,7 @@ const routes = {
     hasAction: false,
     hasWorkerLoader: false,
     hasWorkerAction: false,
-    module: route1
+    module: route3
   },
   "routes/posts.$id": {
     id: "routes/posts.$id",
@@ -4918,7 +5094,7 @@ const routes = {
     hasAction: false,
     hasWorkerLoader: false,
     hasWorkerAction: false,
-    module: route2
+    module: route4
   },
   "routes/PostCard": {
     id: "routes/PostCard",
@@ -4930,7 +5106,7 @@ const routes = {
     hasAction: false,
     hasWorkerLoader: false,
     hasWorkerAction: false,
-    module: route3
+    module: route5
   },
   "routes/category": {
     id: "routes/category",
@@ -4942,7 +5118,7 @@ const routes = {
     hasAction: true,
     hasWorkerLoader: false,
     hasWorkerAction: false,
-    module: route4
+    module: route6
   },
   "routes/authors": {
     id: "routes/authors",
@@ -4954,7 +5130,31 @@ const routes = {
     hasAction: false,
     hasWorkerLoader: false,
     hasWorkerAction: false,
-    module: route5
+    module: route7
+  },
+  "routes/install": {
+    id: "routes/install",
+    parentId: "root",
+    path: "install",
+    index: void 0,
+    caseSensitive: void 0,
+    hasLoader: false,
+    hasAction: false,
+    hasWorkerLoader: false,
+    hasWorkerAction: false,
+    module: route8
+  },
+  "routes/sendmsg": {
+    id: "routes/sendmsg",
+    parentId: "root",
+    path: "sendmsg",
+    index: void 0,
+    caseSensitive: void 0,
+    hasLoader: false,
+    hasAction: true,
+    hasWorkerLoader: false,
+    hasWorkerAction: false,
+    module: route9
   },
   "routes/_index": {
     id: "routes/_index",
@@ -4966,7 +5166,7 @@ const routes = {
     hasAction: true,
     hasWorkerLoader: false,
     hasWorkerAction: false,
-    module: route6
+    module: route10
   },
   "routes/search": {
     id: "routes/search",
@@ -4978,7 +5178,7 @@ const routes = {
     hasAction: false,
     hasWorkerLoader: false,
     hasWorkerAction: false,
-    module: route7
+    module: route11
   },
   "routes/ai": {
     id: "routes/ai",
@@ -4990,7 +5190,7 @@ const routes = {
     hasAction: true,
     hasWorkerLoader: false,
     hasWorkerAction: false,
-    module: route8
+    module: route12
   }
 };
 const entry = { module: entryWorker };

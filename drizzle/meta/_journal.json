@@ -15,6 +15,13 @@
       "when": 1729609391962,
       "tag": "0001_lively_white_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1730207236962,
+      "tag": "0002_previous_spyke",
+      "breakpoints": true
     }
   ]
 }

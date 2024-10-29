@@ -4,7 +4,7 @@ import {
   clearUpOldCaches,
   type DefaultFetchHandler,
 } from '@remix-pwa/sw'
-
+import { type NotificationObject } from '@remix-pwa/push';
 
 const version = 'v1'
 
@@ -22,7 +22,7 @@ const assetCache = new EnhancedCache(ASSET_CACHE_NAME, {
   strategy: 'CacheFirst',
   strategyOptions: {
     maxAgeSeconds: 60 * 60 * 24 * 90, // 90 days
-    maxEntries: 100,
+    maxEntries: 20000,
   }
 })
 
@@ -43,6 +43,7 @@ self.addEventListener('activate', event => {
   console.log('Service worker activated')
 
   event.waitUntil(Promise.all([
+
     clearUpOldCaches([ASSET_CACHE_NAME], version),
     self.clients.claim(),
   ]))
@@ -50,12 +51,35 @@ self.addEventListener('activate', event => {
 
 export const defaultFetchHandler: DefaultFetchHandler = async ({ context }) => {
   const request = context.event.request
-  const url = new URL(request.url)
 
- 
-  if (self.__workerManifest.assets.includes(url.pathname)) {
-    return assetCache.handleRequest(request)
-  }
+
+
+
+
 
   return fetch(request)
 }
+
+
+
+import { PushManager } from '@remix-pwa/push/client';
+
+export const pushManager = new PushManager({
+  handlePushEvent: async (event) => {
+    // Handle incoming push event
+    const msg = event.data?.json() as NotificationObject
+    console.log("push event", msg)
+    await self.registration.showNotification(msg.title, {
+      body: msg.options[0].body,
+    })
+  },
+  handleNotificationClick: (event) => {
+    // Handle notification click event
+  },
+  handleNotificationClose: (event) => {
+    // Handle notification close event
+  },
+  handleNotificationError: (event) => {
+    // Handle notification error event
+  },
+});

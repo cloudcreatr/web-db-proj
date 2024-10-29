@@ -29,6 +29,8 @@ export async function action() {
             categoryDescription: z.string().describe("description of the category"),
 
         }),
+        topK: 2,
+        topP: 0.9,
         prompt: 'Generate a Blog post with its category, labels, author name and about the author. few comments. markdown is not supported, should be unique',
     });
 
