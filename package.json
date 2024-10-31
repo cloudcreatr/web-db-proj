@@ -11,7 +11,8 @@
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "cross-env NODE_ENV=production node ./server.js",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "cache": "bun run cachea.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^0.0.55",

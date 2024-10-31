@@ -4801,7 +4801,7 @@ class PushManager {
 }
 const version = "v1";
 const ASSET_CACHE_NAME = `asset-cache`;
-new EnhancedCache(ASSET_CACHE_NAME, {
+const assetCache = new EnhancedCache(ASSET_CACHE_NAME, {
   version,
   strategy: "CacheFirst",
   strategyOptions: {
@@ -4810,8 +4810,21 @@ new EnhancedCache(ASSET_CACHE_NAME, {
     maxEntries: 2e4
   }
 });
-self.addEventListener("install", (event) => {
+self.addEventListener("install", async (event) => {
   console.log("Service worker installed");
+  try {
+    const response = await fetch("/cachea.json");
+    if (response.ok) {
+      const files = await response.json();
+      const fileWithOrigin = files.map((file) => new URL(file, self.location.origin).href);
+      console.log("Pre-caching", fileWithOrigin);
+      await assetCache.preCacheUrls(fileWithOrigin);
+    } else {
+      console.log("cachea.json not found, skipping pre-caching.");
+    }
+  } catch (error) {
+    console.log("Error fetching cachea.json:", error);
+  }
   event.waitUntil(self.skipWaiting());
 });
 self.addEventListener("activate", (event) => {
@@ -4823,7 +4836,7 @@ self.addEventListener("activate", (event) => {
 });
 const defaultFetchHandler = async ({ context }) => {
   const request = context.event.request;
-  return fetch(request);
+  return assetCache.handleRequest(request);
 };
 const pushManager = new PushManager({
   handlePushEvent: async (event) => {

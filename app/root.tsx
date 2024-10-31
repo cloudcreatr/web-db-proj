@@ -13,6 +13,7 @@ import type { LinksFunction } from "@remix-run/node";
 import {  motion} from "framer-motion";
 
 import "./tailwind.css";
+import { ManifestLink } from "@remix-pwa/sw";
 
 
 
@@ -28,10 +29,10 @@ export const links: LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
-  {
-    rel: "manifest",
-    href: "/manifest.webmanifest",
-  },
+  // {
+  //   rel: "manifest",
+  //   href: "/manifest.webmanifest",
+  // },
 
 ];
 
@@ -42,8 +43,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
-       
         <Links />
+       <ManifestLink />
       </head>
       <body className="flex justify-center bg-blue-50">
         <div className="max-w-2xl w-full min-w-56 px-4">
