@@ -8,8 +8,8 @@ export const loader = () => {
       name: 'Remix PWA',
       start_url: '/',
       display: 'standalone',
-      background_color: '#d3d7dd',
-      theme_color: '#c34138',
+      background_color: '#eff6ff',
+      theme_color: '#eff6ff',
       display_override: ["window-controls-overlay"],
       icons: [
         {

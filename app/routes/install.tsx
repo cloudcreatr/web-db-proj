@@ -1,14 +1,14 @@
 import { Switch } from "~/components/ui/switch";
-import { usePWAManager } from "@remix-pwa/client";
-import { Button } from "~/components/ui/button";
+
 import { usePush } from "@remix-pwa/push/client";
 import { useState, useEffect } from "react";
 import { useFetcher } from "@remix-run/react";
 import { action } from "./notification";
-import { WorkerActionArgs } from "@remix-pwa/sw";
+import InstallPWA from "./installBtx";
+
 
 export default function Install() {
-  const { promptInstall } = usePWAManager();
+
   const { unsubscribeFromPush, subscribeToPush } = usePush();
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const f = useFetcher<typeof action>();
@@ -78,13 +78,7 @@ export default function Install() {
           You can install the app by clicking the install button below
         </p>
 
-        <Button
-          className="mt-2"
-          variant="outline"
-          onClick={() => promptInstall()}
-        >
-          Install Now
-        </Button>
+        <InstallPWA />
 
         <div className="flex gap-2 justify-between items-center p-4 border-2 rounded-2xl mt-4 shadow-md">
           <p className="font-medium">

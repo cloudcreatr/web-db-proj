@@ -7,10 +7,10 @@ import { z } from 'zod';
 import { DbConnection } from './connection';
 import { author_post, authors, categories, comments, post_category, posts, tags } from '~/db';
 export async function action() {
-    console.log("action ai")
+   try{ console.log("action ai")
     const google = createGoogleGenerativeAI({
         // custom settings
-        apiKey: "AIzaSyBBeTifrChbrc2sZi0NI39nGWeZ_KjtHsQ"
+        apiKey: "AIzaSyD1BQxnCSrVZ05AbEq62jiG1VQf6DzU0u0"
     });
     const model = google("gemini-1.5-pro-002")
     const { object } = await generateObject({
@@ -74,6 +74,11 @@ export async function action() {
     })
     return {
         message: "Hello from the server!"
+    }}catch(e){
+        console.log(e)
+        return {
+            message: "Hello from the server!"
+        }
     }
 }
 

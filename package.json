@@ -10,13 +10,16 @@
     "mig:drop": "drizzle-kit drop",
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
-    "start": "cross-env NODE_ENV=production node ./server.js",
+    "start": "cross-env NODE_ENV=production node ./server.js & sudo service cloudflared start",
+
     "typecheck": "tsc",
     "cache": "bun run cachea.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^0.0.55",
     "@radix-ui/react-icons": "^1.3.0",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-switch": "^1.1.1",
     "@remix-pwa/client": "^3.0.7",

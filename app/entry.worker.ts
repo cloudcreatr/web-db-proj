@@ -6,7 +6,7 @@ import {
 } from "@remix-pwa/sw";
 import { type NotificationObject } from "@remix-pwa/push";
 
-const version = "v3";
+const version = "u4";
 
 const ASSET_CACHE_NAME = `asset-cache`;
 declare let self: ServiceWorkerGlobalScope;
@@ -27,16 +27,17 @@ self.addEventListener("install", (event) => {
       try {
         console.log("📥 Attempting to fetch cachea.json");
         const response = await fetch("/cachea.json");
-        
-        if (response.ok) {
-          console.log("✅ cachea.json fetch successful, status:", response.status);
-          const files = await response.json();
-          
-          // Only filter out the "assets" directory entry
-          const cleanedFiles = files.filter(file => file !== "assets");
 
+        if (response.ok) {
+          console.log(
+            "✅ cachea.json fetch successful, status:",
+            response.status
+          );
+          const files = await response.json();
+
+          console.log("📦 Files to pre-cache:", files);
           console.log("⏳ Starting pre-cache operation");
-          await assetCache.preCacheUrls(cleanedFiles);
+          await assetCache.preCacheUrls(files);
           console.log("✅ Pre-caching completed successfully");
         } else {
           console.warn("⚠️ cachea.json not found, status:", response.status);
@@ -45,7 +46,7 @@ self.addEventListener("install", (event) => {
         console.error("❌ Error during installation:", error);
         console.log("🔍 Error details:", {
           message: error.message,
-          stack: error.stack
+          stack: error.stack,
         });
       }
       console.log("⏭️ Calling skipWaiting()");
@@ -55,13 +56,15 @@ self.addEventListener("install", (event) => {
   );
 });
 
-self.addEventListener("activate", event => {
-  event.waitUntil(Promise.all([
-    clearUpOldCaches([ASSET_CACHE_NAME], version).then(() => {
-      console.log('Old caches cleared');
-      self.clients.claim();
-    })
-  ]));
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    Promise.all([
+      clearUpOldCaches([ASSET_CACHE_NAME], version).then(() => {
+        console.log("Old caches cleared");
+        self.clients.claim();
+      }),
+    ])
+  );
 });
 
 export const defaultFetchHandler: DefaultFetchHandler = async ({ context }) => {
@@ -70,7 +73,9 @@ export const defaultFetchHandler: DefaultFetchHandler = async ({ context }) => {
 
   const match = await assetCache.match(request);
   if (match) {
-    console.log(`Cache hit: ${request.url} took ${performance.now() - startTime}ms`);
+    console.log(
+      `Cache hit: ${request.url} took ${performance.now() - startTime}ms`
+    );
     return match;
   }
 
@@ -88,14 +93,5 @@ export const pushManager = new PushManager({
     await self.registration.showNotification(msg.title, {
       body: msg.options[0].body,
     });
-  },
-  handleNotificationClick: (event) => {
-    // Handle notification click event
-  },
-  handleNotificationClose: (event) => {
-    // Handle notification close event
-  },
-  handleNotificationError: (event) => {
-    // Handle notification error event
   },
 });

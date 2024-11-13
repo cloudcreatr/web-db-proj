@@ -1,4 +1,4 @@
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, json } from "@remix-run/node";
 import { DbConnection } from "./connection";
 import { notifications } from "~/db";
 import { eq } from "drizzle-orm";
@@ -19,18 +19,18 @@ export async function action({ request }: ActionFunctionArgs) {
         const id = await db.insert(notifications).values({
             payload: JSON.parse(subscription),
         }).$returningId()
-        return {
+        return json({
             notification_id: id[0].notification_id
-        }
+        })
     }
 
     if (action === "unsubscribe" && idSUb) {
         await db.delete(notifications).where(eq(notifications.notification_id, parseInt(idSUb)))
-        return {
+        return json({
             notification_id: null
-        }
+        })
     }
-    return {
+    return json({
         notification_id: null
-    }
+    })
 }
